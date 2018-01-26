@@ -3,11 +3,13 @@ package com.lsp.handler;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class Message implements Delayed {
+public final class Message implements Delayed {
     public int mWhat;
     public Object mObj;
     public Runnable mRun;
     private long mExcuteTime;//执行时间
+
+    public Message(){}
 
     public Message(Runnable run,long delayTime){
         this(0,null,run,delayTime);
@@ -21,6 +23,10 @@ public class Message implements Delayed {
         this.mWhat=what;
         this.mObj=obj;
         this.mRun=run;
+        setDelayTime(delayTime);
+    }
+
+    public void setDelayTime(long delayTime){
         this.mExcuteTime=TimeUnit.NANOSECONDS.convert(delayTime, TimeUnit.MILLISECONDS) + System.nanoTime();
     }
 
@@ -38,5 +44,10 @@ public class Message implements Delayed {
 
     public long getExcuteTime() {
         return mExcuteTime;
+    }
+
+    public static Message obtain(){
+        // TODO maybe can use message pool.
+        return new Message();
     }
 }

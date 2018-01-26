@@ -13,7 +13,7 @@ public class HandlerThread {
         mIsStop =true;
         mMessageQueue=new DelayQueue<>();
     }
-    public synchronized void loop(){
+    public synchronized void start(){
         if(!mIsStop){return;}
         mIsStop =false;
         new Thread(){
@@ -22,7 +22,10 @@ public class HandlerThread {
                 while(!mIsStop){
                     try {
                         Message msg=mMessageQueue.take();
-                        if(msg.mRun!=null){
+                        Log.d(TAG, "take a msg:"+msg);
+                        if(msg==null){
+
+                        }else if(msg.mRun!=null){
                             msg.mRun.run();
                         }else if(mHandler!=null){
                             mHandler.handleMessage(msg);
@@ -36,15 +39,53 @@ public class HandlerThread {
     }
 
     public synchronized void stop(){
-        mIsStop =true;
+        if(!mIsStop){
+            mIsStop =true;
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    // do nothing
+                }
+            });
+        }
     }
 
     public void setHandler(Handler handler) {
         this.mHandler = handler;
     }
 
-    public void putMessage(Message msg){
-        boolean success=mMessageQueue.offer(msg);
-        Log.d(TAG,"put msg :"+success);
+    public void sendMessage(Message msg){
+        mMessageQueue.offer(msg);
+    }
+
+    public void postDelayed(Runnable run,long delayTime){
+        Message msg=Message.obtain();
+        msg.mRun=run;
+        msg.setDelayTime(delayTime);
+        sendMessage(msg);
+    }
+
+    public void post(Runnable run){
+        postDelayed(run,0);
+    }
+
+    public void sendMessageDelayed(int what,Object obj,long delayTime){
+        Message msg=Message.obtain();
+        msg.mWhat=what;
+        msg.mObj=obj;
+        msg.setDelayTime(delayTime);
+        sendMessage(msg);
+    }
+
+    public void sendMessageDelayed(int what,long delayTime){
+        sendMessageDelayed(what,null,delayTime);
+    }
+
+    public void sendMessage(int what){
+        sendMessageDelayed(what,0);
+    }
+
+    public void sendMessage(int what,Object obj){
+        sendMessageDelayed(what,obj,0);
     }
 }
